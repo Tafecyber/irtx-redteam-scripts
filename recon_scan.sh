@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # =======================================================
-#   IRTx Red Team - Reconnaissance Script
+#   IRTx Red Team - Reconnaissance Script v2
 #   Author: DataTrust Red Team
-#   Description: Stealthy host discovery and port scan
-#                with coloured output and report gen.
+#   Description: Fast host discovery, stealth port scan,
+#                coloured output and per-host reporting.
 # =======================================================
 
 # --- Colours ---
@@ -40,19 +40,20 @@ if ! command -v nmap &> /dev/null; then
     exit 1
 fi
 
-# --- Auto-detect interface ---
+# --- Auto-detect interface and attacker IP ---
 INTERFACE=$(ip route | grep default | awk '{print $5}' | head -n1)
+ATTACKER_IP=$(ip -4 addr show "$INTERFACE" | grep inet | awk '{print $2}' | cut -d'/' -f1)
+
 if [ -z "$INTERFACE" ]; then
-    echo -e "${RED}[!] Could not auto-detect network interface. Exiting.${RESET}"
+    echo -e "${RED}[!] Could not detect network interface. Exiting.${RESET}"
     exit 1
 fi
-echo -e "${CYAN}[*] Interface detected: ${BOLD}$INTERFACE${RESET}"
 
-# --- Get attacker IP for decoy list ---
-ATTACKER_IP=$(ip -4 addr show "$INTERFACE" | grep inet | awk '{print $2}' | cut -d'/' -f1)
-echo -e "${CYAN}[*] Attacker IP: ${BOLD}$ATTACKER_IP${RESET}"
+echo -e "${CYAN}[*] Interface : ${BOLD}$INTERFACE${RESET}"
+echo -e "${CYAN}[*] Attacker  : ${BOLD}$ATTACKER_IP${RESET}"
+echo ""
 
-# --- Input validation functions ---
+# --- Input validation ---
 validate_ip() {
     local ip=$1
     IFS='.' read -r -a octets <<< "$ip"
@@ -76,7 +77,6 @@ validate_cidr() {
 }
 
 # --- Prompt for target ---
-echo ""
 echo -e "${YELLOW}[?] Enter target network (e.g. 10.30.0.0/24):${RESET}"
 read -r TARGET_NETWORK
 
@@ -88,16 +88,16 @@ fi
 IFS='/' read -r ip_part cidr_part <<< "$TARGET_NETWORK"
 
 if ! validate_ip "$ip_part"; then
-    echo -e "${RED}[!] Invalid IP address: $ip_part${RESET}"
+    echo -e "${RED}[!] Invalid IP: $ip_part${RESET}"
     exit 1
 fi
 
 if ! validate_cidr "$cidr_part"; then
-    echo -e "${RED}[!] Invalid CIDR: /$cidr_part (must be 0-32)${RESET}"
+    echo -e "${RED}[!] Invalid CIDR: /$cidr_part${RESET}"
     exit 1
 fi
 
-# --- Setup output files ---
+# --- Output setup ---
 TIMESTAMP=$(date +%F_%H-%M-%S)
 LIVE_HOSTS="live_hosts_$TIMESTAMP.txt"
 REPORT_DIR="recon_report_$TIMESTAMP"
@@ -106,21 +106,21 @@ mkdir -p "$REPORT_DIR"
 
 # =======================================================
 # PHASE 1: HOST DISCOVERY
-# Uses TCP SYN + ICMP + ARP probes to catch hosts that
-# block ICMP (e.g. Windows with firewall enabled).
-# Decoys and MAC spoofing used to confuse blue team logs.
+# TCP SYN probes on key ports catches Windows hosts
+# that silently drop ICMP (ping) packets.
+# -sn  : No port scan, discovery only
+# -PS  : TCP SYN probe to listed ports
+# -PE  : ICMP echo probe (catches Linux/routers)
+# -n   : No DNS resolution (faster, quieter)
+# -T4  : Aggressive timing for speed
 # =======================================================
+echo -e "${MAGENTA}[>] Phase 1: Host Discovery ...${RESET}"
+echo -e "${CYAN}[*] Probing with TCP SYN on ports 22,80,135,139,443,445,3389 + ICMP${RESET}"
 echo ""
-echo -e "${MAGENTA}[>] Phase 1: Host Discovery on $TARGET_NETWORK ...${RESET}"
-echo -e "${CYAN}[*] Using TCP SYN + ICMP + ARP probes (catches Windows hosts that block ping)${RESET}"
 
 nmap -sn \
-    -PS22,80,135,443,445,3389 \
-    -PA80,445 \
+    -PS22,80,135,139,443,445,3389 \
     -PE \
-    -D RND:5 \
-    --spoof-mac 0 \
-    -e "$INTERFACE" \
     -n \
     -T3 \
     "$TARGET_NETWORK" \
@@ -141,31 +141,27 @@ echo -e "${GREEN}[+] Found ${BOLD}$HOST_COUNT${RESET}${GREEN} live host(s):${RES
 while IFS= read -r host; do
     echo -e "    ${GREEN}►  $host${RESET}"
 done < "$LIVE_HOSTS"
-
-# =======================================================
-# PHASE 2: SINGLE COMBINED STEALTH SCAN
-# One nmap call across all live hosts simultaneously.
-# Covers common + high-value ports.
-# -sS  : SYN stealth (half-open, avoids full handshake)
-# -sV  : Service/version detection
-# -O   : OS fingerprinting
-# -A   : Aggressive detection (scripts, traceroute)
-# -D   : Random decoys to flood blue team logs
-# =======================================================
 echo ""
-echo -e "${MAGENTA}[>] Phase 2: Stealth Port & Service Scan (single nmap pass) ...${RESET}"
-echo -e "${CYAN}[*] Scanning ports: 21,22,23,25,53,80,110,135,139,443,445,${RESET}"
-echo -e "${CYAN}    1433,1521,3306,3389,4444,5900,6667,8080,8443,9200${RESET}"
 
-# Build space-separated host list for nmap
+# =======================================================
+# PHASE 2: SINGLE STEALTH PORT SCAN (all hosts, one call)
+# Targets high-value and commonly vulnerable ports.
+# -sS  : SYN stealth scan (half-open TCP)
+# -sV  : Service and version detection
+# -O   : OS fingerprinting
+# -T4  : Fast timing
+# --open : Only show open ports (cleaner output)
+# -oN  : Save to file in normal nmap format
+# =======================================================
+echo -e "${MAGENTA}[>] Phase 2: Stealth Port & Service Scan (one pass across all hosts) ...${RESET}"
+echo -e "${CYAN}[*] Ports: 21,22,23,25,53,80,110,135,139,443,445,${RESET}"
+echo -e "${CYAN}           1433,1521,3306,3389,4444,5900,6667,8080,8443,9200${RESET}"
+echo ""
+
 HOSTS_INLINE=$(paste -sd' ' "$LIVE_HOSTS")
 
-nmap \
-    -sS -sV -O -A \
+nmap -sS -sV -O \
     -p 21,22,23,25,53,80,110,135,139,443,445,1433,1521,3306,3389,4444,5900,6667,8080,8443,9200 \
-    -D RND:5 \
-    --spoof-mac 0 \
-    -e "$INTERFACE" \
     -n \
     -T3 \
     --open \
@@ -173,40 +169,59 @@ nmap \
     -oN "$FULL_REPORT"
 
 # =======================================================
-# PHASE 3: COLOURED SUMMARY REPORT (per host)
-# Parses the nmap output and prints a clean summary
-# to screen, then saves individual host reports.
+# PHASE 3: PARSE OUTPUT — coloured screen summary
+#          + individual per-host .txt report files
 # =======================================================
 echo ""
-echo -e "${MAGENTA}[>] Phase 3: Generating Per-Host Reports ...${RESET}"
+echo -e "${MAGENTA}[>] Phase 3: Building Reports ...${RESET}"
+echo ""
 
 CURRENT_HOST=""
 CURRENT_FILE=""
 
 while IFS= read -r line; do
-    # Detect new host block
+
+    # New host block detected
     if [[ "$line" =~ ^"Nmap scan report for" ]]; then
         CURRENT_HOST=$(echo "$line" | awk '{print $NF}' | tr -d '()')
         CURRENT_FILE="$REPORT_DIR/host_${CURRENT_HOST}.txt"
-        echo -e "\n${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-        echo -e "${BOLD}${GREEN}  Host: $CURRENT_HOST${RESET}"
-        echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-        echo "=== Host: $CURRENT_HOST ===" > "$CURRENT_FILE"
 
-    # Detect OS line
-    elif [[ "$line" =~ "OS details:" || "$line" =~ "Running:" ]]; then
-        echo -e "  ${YELLOW}$line${RESET}"
-        echo "$line" >> "$CURRENT_FILE"
+        echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        echo -e "${BOLD}${GREEN}  Target : $CURRENT_HOST${RESET}"
+        echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        {
+            echo "============================================="
+            echo "  Target: $CURRENT_HOST"
+            echo "  Scanned: $(date)"
+            echo "============================================="
+        } > "$CURRENT_FILE"
 
-    # Detect open ports
-    elif [[ "$line" =~ "open" ]]; then
+    # OS detection line
+    elif [[ "$line" =~ "OS details:" ]]; then
+        echo -e "  ${YELLOW}[OS]  ${line}${RESET}"
+        echo "  $line" >> "$CURRENT_FILE"
+
+    # Running OS guess
+    elif [[ "$line" =~ "Running:" ]]; then
+        echo -e "  ${YELLOW}[OS]  ${line}${RESET}"
+        echo "  $line" >> "$CURRENT_FILE"
+
+    # Open port line
+    elif echo "$line" | grep -q "open"; then
         PORT=$(echo "$line" | awk '{print $1}')
+        PROTO=$(echo "$line" | awk '{print $2}')
         SERVICE=$(echo "$line" | awk '{print $3}')
         VERSION=$(echo "$line" | awk '{$1=$2=$3=""; print $0}' | xargs)
-        echo -e "  ${GREEN}[OPEN]${RESET} ${BOLD}$PORT${RESET} — $SERVICE $VERSION"
-        echo "  [OPEN] $PORT — $SERVICE $VERSION" >> "$CURRENT_FILE"
+        echo -e "  ${GREEN}[OPEN]${RESET} ${BOLD}$PORT${RESET} ($PROTO) — ${CYAN}$SERVICE${RESET} $VERSION"
+        echo "  [OPEN] $PORT ($PROTO) — $SERVICE $VERSION" >> "$CURRENT_FILE"
 
-    # Write everything to individual file anyway
+    # Host up line
+    elif [[ "$line" =~ "Host is up" ]]; then
+        LATENCY=$(echo "$line" | grep -oP '\(.*?\)')
+        echo -e "  ${GREEN}[UP]${RESET} Host is up $LATENCY"
+        echo "  [UP] Host is up $LATENCY" >> "$CURRENT_FILE"
+
+    # Write all other lines to file only (keeps screen clean)
     else
         [ -n "$CURRENT_FILE" ] && echo "$line" >> "$CURRENT_FILE"
     fi
@@ -217,14 +232,14 @@ done < "$FULL_REPORT"
 # FINAL SUMMARY
 # =======================================================
 echo ""
-echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${GREEN}  Scan Complete!${RESET}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "  ${YELLOW}Live hosts file :${RESET} $LIVE_HOSTS"
-echo -e "  ${YELLOW}Full report     :${RESET} $FULL_REPORT"
-echo -e "  ${YELLOW}Per-host reports:${RESET} $REPORT_DIR/host_<IP>.txt"
-echo -e "  ${YELLOW}Hosts scanned   :${RESET} $HOST_COUNT"
-echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "${BOLD}${GREEN}  All scans complete!${RESET}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "  ${YELLOW}Hosts found    :${RESET} ${BOLD}$HOST_COUNT${RESET}"
+echo -e "  ${YELLOW}Live hosts file:${RESET} $LIVE_HOSTS"
+echo -e "  ${YELLOW}Full report    :${RESET} $FULL_REPORT"
+echo -e "  ${YELLOW}Per-host files :${RESET} $REPORT_DIR/host_<IP>.txt"
+echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 
 exit 0
