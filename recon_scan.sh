@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =======================================================
-#   IRTx Red Team - Reconnaissance Script v2
+#   IRTx Red Team - Reconnaissance Script 
 #   Author: DataTrust Red Team
 #   Description: Fast host discovery, stealth port scan,
 #                coloured output and per-host reporting.
@@ -25,7 +25,7 @@ echo "  ██╔══██╗██╔══╝  ██║     ██║   �
 echo "  ██║  ██║███████╗╚██████╗╚██████╔╝██║ ╚████║"
 echo "  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝"
 echo -e "${CYAN}       IRTx Red Team Reconnaissance Tool${RESET}"
-echo -e "${YELLOW}       DataTrust Security Consultants${RESET}"
+echo -e "${YELLOW}        DataTrust Security Consultants${RESET}"
 echo ""
 
 # --- Root check ---
