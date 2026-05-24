@@ -112,7 +112,7 @@ mkdir -p "$REPORT_DIR"
 # -PS  : TCP SYN probe to listed ports
 # -PE  : ICMP echo probe (catches Linux/routers)
 # -n   : No DNS resolution (faster, quieter)
-# -T4  : Aggressive timing for speed
+# -T3  : Default timing
 # =======================================================
 echo -e "${MAGENTA}[>] Phase 1: Host Discovery ...${RESET}"
 echo -e "${CYAN}[*] Probing with TCP SYN on ports 22,80,135,139,443,445,3389 + ICMP${RESET}"
@@ -149,7 +149,7 @@ echo ""
 # -sS  : SYN stealth scan (half-open TCP)
 # -sV  : Service and version detection
 # -O   : OS fingerprinting
-# -T4  : Fast timing
+# -T3  : Moderate Speed
 # --open : Only show open ports (cleaner output)
 # -oN  : Save to file in normal nmap format
 # =======================================================
