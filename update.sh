@@ -60,13 +60,30 @@ TOOLS=(
   john                
 )
 
+# --- Spinner function ---
+spinner() {
+  local pid=$1
+  local tool=$2
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local i=0
+  while kill -0 "$pid" 2>/dev/null; do
+    i=$(( (i+1) % 10 ))
+    printf "\r  ${CYAN}[${spin:$i:1}] Installing: $tool...${RESET}"
+    sleep 0.1
+  done
+  printf "\r"
+}
+
+# --- Install loop ---
 for tool in "${TOOLS[@]}"; do
-  echo -e "${CYAN}  [~] Installing: $tool${RESET}"
-  apt-get install -y "$tool" > /dev/null 2>&1
+  apt-get install -y "$tool" > /dev/null 2>&1 &
+  PID=$!
+  spinner "$PID" "$tool"
+  wait "$PID"
   if [[ $? -eq 0 ]]; then
-    echo -e "${GREEN}  [✓] $tool ready.${RESET}"
+    echo -e "  ${GREEN}[✓] $tool ready.${RESET}"
   else
-    echo -e "${RED}  [!] Failed: $tool${RESET}"
+    echo -e "  ${RED}[!] Failed: $tool${RESET}"
   fi
 done
 echo ""
