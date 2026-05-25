@@ -29,7 +29,7 @@ BASE="https://raw.githubusercontent.com/Tafecyber/irtx-redteam-scripts/main"
 SCRIPTS=(
     "update.sh"
     "recon_scan.sh"
-    "privesc.sh"
+    "eternal.sh"
     "exfil.sh"
 )
 
