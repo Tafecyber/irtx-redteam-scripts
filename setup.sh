@@ -28,7 +28,7 @@ BASE="https://raw.githubusercontent.com/Tafecyber/irtx-redteam-scripts/main"
 
 SCRIPTS=(
     "recon_scan.sh"
-    "exploit_metasploitable.sh"
+    "update.sh"
     "privesc.sh"
     "exfil.sh"
 )
