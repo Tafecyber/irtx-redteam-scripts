@@ -75,15 +75,20 @@ spinner() {
 }
 
 # --- Install loop ---
+TOTAL=${#TOOLS[@]}
+COUNT=0
+
 for tool in "${TOOLS[@]}"; do
   apt-get install -y "$tool" > /dev/null 2>&1 &
   PID=$!
   spinner "$PID" "$tool"
   wait "$PID"
+  COUNT=$((COUNT + 1))
+  PERCENT=$(( COUNT * 100 / TOTAL ))
   if [[ $? -eq 0 ]]; then
-    echo -e "  ${GREEN}[✓] $tool ready.${RESET}"
+    echo -e "  ${GREEN}[✓] $tool ready. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
   else
-    echo -e "  ${RED}[!] Failed: $tool${RESET}"
+    echo -e "  ${RED}[!] Failed: $tool ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
   fi
 done
 echo ""
