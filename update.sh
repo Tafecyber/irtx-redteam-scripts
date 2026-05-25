@@ -85,13 +85,20 @@ TOTAL=${#TOOLS[@]}
 COUNT=0
 
 for tool in "${TOOLS[@]}"; do
+  COUNT=$((COUNT + 1))
+  PERCENT=$(( COUNT * 100 / TOTAL ))
+
+  # Check if already installed
+  if dpkg -s "$tool" &> /dev/null; then
+    echo -e "  ${CYAN}[~] $tool already installed. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
+    continue
+  fi
+
   apt-get install -y "$tool" > /dev/null 2>&1 &
   PID=$!
   spinner "$PID" "$tool"
   wait "$PID"
   EXIT_CODE=$?
-  COUNT=$((COUNT + 1))
-  PERCENT=$(( COUNT * 100 / TOTAL ))
   if [[ $EXIT_CODE -eq 0 ]]; then
     echo -e "  ${GREEN}[✓] $tool ready. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
   else
