@@ -24,7 +24,7 @@ echo -e "${CYAN}          IRTx Red Team — Setup Script${RESET}"
 echo -e "${YELLOW}          DataTrust Security Consultants${RESET}"
 echo ""
 
-BASE="https://raw.githubusercontent.com/YourUsername/irtx-redteam-scripts/main"
+BASE="https://raw.githubusercontent.com/Tafecyber/irtx-redteam-scripts/main"
 
 SCRIPTS=(
     "recon_scan.sh"
