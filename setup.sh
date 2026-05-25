@@ -27,8 +27,8 @@ echo ""
 BASE="https://raw.githubusercontent.com/Tafecyber/irtx-redteam-scripts/main"
 
 SCRIPTS=(
-    "recon_scan.sh"
     "update.sh"
+    "recon_scan.sh"
     "privesc.sh"
     "exfil.sh"
 )
