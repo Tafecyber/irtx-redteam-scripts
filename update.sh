@@ -74,10 +74,10 @@ spinner() {
   local i=0
   while kill -0 "$pid" 2>/dev/null; do
     i=$(( (i+1) % 10 ))
-    printf "\r  ${CYAN}[${spin:$i:1}] Installing: $tool...${RESET}"
+    printf "\r  ${CYAN}[${spin:$i:1}] Installing: %-20s${RESET}" "$tool"
     sleep 0.1
   done
-  printf "\r"
+  printf "\r%-50s\r" " "
 }
 
 # --- Install loop ---
@@ -89,9 +89,10 @@ for tool in "${TOOLS[@]}"; do
   PID=$!
   spinner "$PID" "$tool"
   wait "$PID"
+  EXIT_CODE=$?
   COUNT=$((COUNT + 1))
   PERCENT=$(( COUNT * 100 / TOTAL ))
-  if [[ $? -eq 0 ]]; then
+  if [[ $EXIT_CODE -eq 0 ]]; then
     echo -e "  ${GREEN}[✓] $tool ready. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
   else
     echo -e "  ${RED}[!] Failed: $tool ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
