@@ -30,7 +30,15 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # =============================================================
-# STEP 1 — Install Tools Only (no system upgrade)
+# STEP 1 — Refresh Package List
+# =============================================================
+echo -e "${YELLOW}[+] Refreshing package list...${RESET}"
+apt-get update -y
+echo -e "${GREEN}[✓] Package list updated.${RESET}"
+echo ""
+
+# =============================================================
+# STEP 2 — Install Tools Only 
 # =============================================================
 echo -e "${YELLOW}[+] Installing Red Team tools...${RESET}"
 
