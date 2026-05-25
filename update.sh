@@ -25,7 +25,7 @@ echo ""
 
 # --- Privilege Check ---
 if [[ $EUID -ne 0 ]]; then
-  echo -e "${RED}[!] Run as root: sudo ./prep.sh${RESET}"
+  echo -e "${RED}[!] Run as root: sudo ./update.sh${RESET}"
   exit 1
 fi
 
@@ -44,21 +44,34 @@ echo -e "${GREEN}[✓] Package list updated.${RESET}"
 echo ""
 
 # =============================================================
-# STEP 2 — Install Tools Only (no system upgrade)
+# STEP 2 — Metasploit Fallback Check
+# =============================================================
+if ! command -v msfconsole &> /dev/null; then
+  echo -e "${YELLOW}[+] Metasploit not found — installing via installer...${RESET}"
+  curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall
+  chmod +x msfinstall
+  ./msfinstall > /dev/null 2>&1
+  echo -e "${GREEN}[✓] Metasploit ready.${RESET}"
+else
+  echo -e "${CYAN}[~] Metasploit already installed.${RESET}"
+fi
+echo ""
+
+# =============================================================
+# STEP 3 — Install Tools Only (no system upgrade)
 # =============================================================
 echo -e "${YELLOW}[+] Installing Red Team tools...${RESET}"
 
 TOOLS=(
   nmap
-  metasploit-framework
-  netcat-traditional
+  ncat
   hydra
   hping3
   dsniff
   gobuster
   nikto
   python3
-  python3-pip
+  pip
   curl
   burpsuite
   sqlmap
@@ -88,7 +101,7 @@ for tool in "${TOOLS[@]}"; do
   COUNT=$((COUNT + 1))
   PERCENT=$(( COUNT * 100 / TOTAL ))
 
-  # Check if binary already exists
+  # Check if already installed
   if command -v "$tool" &> /dev/null; then
     echo -e "  ${CYAN}[~] $tool already installed. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
     continue
@@ -108,7 +121,7 @@ done
 echo ""
 
 # =============================================================
-# STEP 3 — Python Modules
+# STEP 4 — Python Modules
 # =============================================================
 echo -e "${YELLOW}[+] Installing Python modules...${RESET}"
 
