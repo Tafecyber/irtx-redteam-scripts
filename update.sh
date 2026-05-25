@@ -29,6 +29,16 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# --- Kill any stuck apt processes ---
+echo -e "${YELLOW}[+] Checking for stuck apt processes...${RESET}"
+killall apt apt-get 2>/dev/null
+rm -f /var/lib/dpkg/lock-frontend
+rm -f /var/lib/dpkg/lock
+rm -f /var/cache/apt/archives/lock
+dpkg --configure -a > /dev/null 2>&1
+echo -e "${GREEN}[✓] apt lock cleared.${RESET}"
+echo ""
+
 # =============================================================
 # STEP 1 — Set Fast Mirror & Refresh Package List
 # =============================================================
