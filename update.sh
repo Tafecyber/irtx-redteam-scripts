@@ -88,8 +88,8 @@ for tool in "${TOOLS[@]}"; do
   COUNT=$((COUNT + 1))
   PERCENT=$(( COUNT * 100 / TOTAL ))
 
-  # Check if already installed
-  if dpkg -s "$tool" &> /dev/null; then
+  # Check if binary already exists
+  if command -v "$tool" &> /dev/null; then
     echo -e "  ${CYAN}[~] $tool already installed. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
     continue
   fi
