@@ -11,6 +11,20 @@ YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 RESET='\033[0m'
 
+# --- Spinner function ---
+spinner() {
+  local pid=$1
+  local tool=$2
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local i=0
+  while kill -0 "$pid" 2>/dev/null; do
+    i=$(( (i+1) % 10 ))
+    printf "\r  ${CYAN}[${spin:$i:1}] Installing: %-20s${RESET}" "$tool"
+    sleep 0.1
+  done
+  printf "\r%-50s\r" " "
+}
+
 # --- Banner ---
 echo -e "${RED}"
 echo "  ██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗"
@@ -29,16 +43,6 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-# --- Kill any stuck apt processes ---
-echo -e "${YELLOW}[+] Checking for stuck apt processes...${RESET}"
-killall apt apt-get 2>/dev/null
-rm -f /var/lib/dpkg/lock-frontend
-rm -f /var/lib/dpkg/lock
-rm -f /var/cache/apt/archives/lock
-dpkg --configure -a > /dev/null 2>&1
-echo -e "${GREEN}[✓] apt lock cleared.${RESET}"
-echo ""
-
 # =============================================================
 # STEP 1 — Set Fast Mirror & Refresh Package List
 # =============================================================
@@ -49,7 +53,9 @@ echo -e "${GREEN}[✓] Mirror set.${RESET}"
 echo ""
 
 echo -e "${YELLOW}[+] Refreshing package list...${RESET}"
-apt-get update -y > /dev/null 2>&1
+apt-get update -y > /dev/null 2>&1 &
+spinner $! "Updating package list"
+wait
 echo -e "${GREEN}[✓] Package list updated.${RESET}"
 echo ""
 
@@ -60,7 +66,9 @@ if ! command -v msfconsole &> /dev/null; then
   echo -e "${YELLOW}[+] Metasploit not found — installing via installer...${RESET}"
   curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall
   chmod +x msfinstall
-  ./msfinstall > /dev/null 2>&1
+  ./msfinstall > /dev/null 2>&1 &
+  spinner $! "Installing Metasploit"
+  wait
   echo -e "${GREEN}[✓] Metasploit ready.${RESET}"
 else
   echo -e "${CYAN}[~] Metasploit already installed.${RESET}"
@@ -89,20 +97,6 @@ TOOLS=(
   john
 )
 
-# --- Spinner function ---
-spinner() {
-  local pid=$1
-  local tool=$2
-  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-  local i=0
-  while kill -0 "$pid" 2>/dev/null; do
-    i=$(( (i+1) % 10 ))
-    printf "\r  ${CYAN}[${spin:$i:1}] Installing: %-20s${RESET}" "$tool"
-    sleep 0.1
-  done
-  printf "\r%-50s\r" " "
-}
-
 # --- Install loop ---
 TOTAL=${#TOOLS[@]}
 COUNT=0
@@ -111,8 +105,7 @@ for tool in "${TOOLS[@]}"; do
   COUNT=$((COUNT + 1))
   PERCENT=$(( COUNT * 100 / TOTAL ))
 
-  # Check if already installed
-  if command -v "$tool" &> /dev/null; then
+  if command -v "$tool" &> /dev/null || dpkg -s "$tool" &> /dev/null 2>&1; then
     echo -e "  ${CYAN}[~] $tool already installed. ${CYAN}($COUNT/$TOTAL — $PERCENT%)${RESET}"
     continue
   fi
