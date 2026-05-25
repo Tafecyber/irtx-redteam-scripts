@@ -13,13 +13,13 @@ RESET='\033[0m'
 
 # --- Banner ---
 echo -e "${RED}"
-echo "  ██████╗ ███████╗ ██████╗ ██████╗ ███╗   ██╗"
-echo "  ██╔══██╗██╔════╝██╔════╝██╔═══██╗████╗  ██║"
-echo "  ██████╔╝█████╗  ██║     ██║   ██║██╔██╗ ██║"
-echo "  ██╔══██╗██╔══╝  ██║     ██║   ██║██║╚██╗██║"
-echo "  ██║  ██║███████╗╚██████╗╚██████╔╝██║ ╚████║"
-echo "  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝"
-echo -e "${CYAN}       IRTx Red Team Reconnaissance Tool${RESET}"
+echo "  ██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗"
+echo "  ██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝"
+echo "  ██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗  "
+echo "  ██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝  "
+echo "  ╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗"
+echo "   ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝"
+echo -e "${CYAN}       IRTx Red Team Prep Tool${RESET}"
 echo -e "${YELLOW}            DataBreach${RESET}"
 echo ""
 
@@ -30,16 +30,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # =============================================================
-# STEP 1 — System Update & Upgrade
-# =============================================================
-echo -e "${YELLOW}[+] Updating system...${RESET}"
-apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade -y
-apt-get autoremove -y && apt-get autoclean -y
-echo -e "${GREEN}[✓] System updated.${RESET}"
-echo ""
-
-# =============================================================
-# STEP 2 — Install Tools
+# STEP 1 — Install Tools Only (no system upgrade)
 # =============================================================
 echo -e "${YELLOW}[+] Installing Red Team tools...${RESET}"
 
@@ -48,30 +39,15 @@ TOOLS=(
   metasploit-framework
   smbclient
   enum4linux
-  gobuster
-  dirb
-  nikto
-  hydra
-  john
-  hashcat
   crackmapexec
   evil-winrm
   impacket-scripts
-  bloodhound
-  neo4j
-  responder
+  gobuster
+  nikto
+  hydra
+  john
   netcat-traditional
-  curl
-  wget
-  git
-  python3
-  python3-pip
   proxychains4
-  net-tools
-  dnsutils
-  whois
-  tcpdump
-  wireshark
   seclists
 )
 
