@@ -30,10 +30,16 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # =============================================================
-# STEP 1 — Refresh Package List
+# STEP 1 — Set Fast Mirror & Refresh Package List
 # =============================================================
+echo -e "${YELLOW}[+] Setting Kali mirror...${RESET}"
+echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" \
+  > /etc/apt/sources.list
+echo -e "${GREEN}[✓] Mirror set.${RESET}"
+echo ""
+
 echo -e "${YELLOW}[+] Refreshing package list...${RESET}"
-apt-get update -y
+apt-get update -y > /dev/null 2>&1
 echo -e "${GREEN}[✓] Package list updated.${RESET}"
 echo ""
 
@@ -43,21 +49,21 @@ echo ""
 echo -e "${YELLOW}[+] Installing Red Team tools...${RESET}"
 
 TOOLS=(
-  nmap                
-  metasploit-framework 
-  netcat-traditional  
-  hydra               
-  hping3              
-  dsniff              
-  gobuster            
-  nikto               
-  python3             
-  python3-pip         
-  curl                
-  burpsuite          
-  sqlmap              
-  proxychains4        
-  john                
+  nmap
+  metasploit-framework
+  netcat-traditional
+  hydra
+  hping3
+  dsniff
+  gobuster
+  nikto
+  python3
+  python3-pip
+  curl
+  burpsuite
+  sqlmap
+  proxychains4
+  john
 )
 
 # --- Spinner function ---
@@ -99,7 +105,7 @@ echo ""
 echo -e "${YELLOW}[+] Installing Python modules...${RESET}"
 
 PY_MODULES=(
-  python-nmap         # C2T06L3 - Python Nmap scripting
+  python-nmap
 )
 
 for module in "${PY_MODULES[@]}"; do
