@@ -38,25 +38,26 @@ echo -e "${GREEN}[✓] Package list updated.${RESET}"
 echo ""
 
 # =============================================================
-# STEP 2 — Install Tools Only 
+# STEP 2 — Install Tools Only (no system upgrade)
 # =============================================================
 echo -e "${YELLOW}[+] Installing Red Team tools...${RESET}"
 
 TOOLS=(
-  nmap
-  metasploit-framework
-  smbclient
-  enum4linux
-  crackmapexec
-  evil-winrm
-  impacket-scripts
-  gobuster
-  nikto
-  hydra
-  john
-  netcat-traditional
-  proxychains4
-  seclists
+  nmap                
+  metasploit-framework 
+  netcat-traditional  
+  hydra               
+  hping3              
+  dsniff              
+  gobuster            
+  nikto               
+  python3             
+  python3-pip         
+  curl                
+  burpsuite          
+  sqlmap              
+  proxychains4        
+  john                
 )
 
 for tool in "${TOOLS[@]}"; do
@@ -66,6 +67,26 @@ for tool in "${TOOLS[@]}"; do
     echo -e "${GREEN}  [✓] $tool ready.${RESET}"
   else
     echo -e "${RED}  [!] Failed: $tool${RESET}"
+  fi
+done
+echo ""
+
+# =============================================================
+# STEP 3 — Python Modules
+# =============================================================
+echo -e "${YELLOW}[+] Installing Python modules...${RESET}"
+
+PY_MODULES=(
+  python-nmap         # C2T06L3 - Python Nmap scripting
+)
+
+for module in "${PY_MODULES[@]}"; do
+  echo -e "${CYAN}  [~] Installing: $module${RESET}"
+  pip3 install "$module" --break-system-packages > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo -e "${GREEN}  [✓] $module ready.${RESET}"
+  else
+    echo -e "${RED}  [!] Failed: $module${RESET}"
   fi
 done
 echo ""
