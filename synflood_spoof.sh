@@ -71,7 +71,7 @@ echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${YELLOW}[+] Pre-attack connectivity check...${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-ping -c 4 "$TARGET"
+ping -c 5 "$TARGET"
 echo ""
 
 # --- Confirm ---
@@ -111,7 +111,7 @@ echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${YELLOW}[+] Post-attack connectivity check...${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-ping -c 4 "$TARGET"
+ping -c 5 "$TARGET"
 
 # --- Done ---
 echo ""
