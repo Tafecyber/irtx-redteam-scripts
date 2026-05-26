@@ -37,11 +37,11 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # --- Input ---
-echo -e "${YELLOW}[?] Enter Metasploitable2 IP ${BOLD}(RHOST)${RESET}${YELLOW}:${RESET}"
+echo -e "${YELLOW}[?] Enter Your Target IP address ${BOLD}(RHOST)${RESET}${YELLOW}:${RESET}"
 read -r TARGET
 
 echo ""
-echo -e "${YELLOW}[?] Enter your Kali IP ${BOLD}(LHOST)${RESET}${YELLOW}:${RESET}"
+echo -e "${YELLOW}[?] Enter your Kali IP address ${BOLD}(LHOST)${RESET}${YELLOW}:${RESET}"
 read -r LHOST
 
 # --- Verify port 21 is open ---
