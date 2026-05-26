@@ -31,7 +31,7 @@ SCRIPTS=(
     "recon_scan.sh"
     "eternal.sh"
     "vsftpd.sh"
-    "synflood.sh"
+    "synflood_spoof.sh"
 )
 
 echo -e "${CYAN}[*] Downloading Red Team scripts from GitHub...${RESET}"
