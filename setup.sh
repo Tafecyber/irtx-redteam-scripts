@@ -30,7 +30,7 @@ SCRIPTS=(
     "update.sh"
     "recon_scan.sh"
     "eternal.sh"
-    "exfil.sh"
+    "vsftpd.sh"
 )
 
 echo -e "${CYAN}[*] Downloading Red Team scripts from GitHub...${RESET}"
