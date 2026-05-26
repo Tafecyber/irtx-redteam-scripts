@@ -110,7 +110,7 @@ for tool in "${TOOLS[@]}"; do
     continue
   fi
 
-  apt-get install -y "$tool" > /dev/null 2>&1 &
+  DEBIAN_FRONTEND=noninteractive apt-get install -y "$tool" > /dev/null 2>&1 &
   PID=$!
   spinner "$PID" "$tool"
   wait "$PID"
