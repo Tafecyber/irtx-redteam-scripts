@@ -32,6 +32,8 @@ SCRIPTS=(
     "eternal.sh"
     "vsftpd.sh"
     "synflood_spoof.sh"
+    "persist.sh"
+    "cover_tracks.sh"
 )
 
 echo -e "${CYAN}[*] Downloading Red Team scripts from GitHub...${RESET}"
