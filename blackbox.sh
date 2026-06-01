@@ -184,16 +184,15 @@ if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
   echo ""
   
   # Pre-accept host key
-  ssh-keyscan -p "$SSH_PORT" -H "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
-  ssh-keygen -R "[$TARGET]:$SSH_PORT" 2>/dev/null
-  ssh-keyscan -p "$SSH_PORT" -H "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
-  sleep 1
+  ssh-keyscan -p "$SSH_PORT" "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
+  sleep 2
   # Connect with password
   sshpass -p "$PASSWORD" ssh \
     -o StrictHostKeyChecking=no \
     -o KexAlgorithms=+diffie-hellman-group1-sha1 \
     -o HostKeyAlgorithms=+ssh-rsa \
     "$USERNAME"@"$TARGET" -p "$SSH_PORT"
+fi
 
 # =============================================================
 # DONE
