@@ -26,7 +26,7 @@ echo "  ██╔═══╝ ██╔══╝  ██╔══██╗╚═
 echo "  ██║     ███████╗██║  ██║███████║██║███████║   ██║   "
 echo "  ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝   ╚═╝   "
 echo -e "${CYAN}        IRTx Red Team — Persistence Script${RESET}"
-echo -e "${YELLOW}        DataTrust Security Consultants${RESET}"
+echo -e "${YELLOW}                   DataBreach${RESET}"
 echo ""
 
 # --- Space-before-commands warning ---
