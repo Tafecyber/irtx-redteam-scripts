@@ -150,7 +150,7 @@ echo -e "  ${CYAN}►${RESET} ${BOLD}Step 4${RESET} — Find the flag once root:
 echo -e "          ${YELLOW}find / -iname flag.txt 2>/dev/null${RESET}"
 echo ""
 echo -e "  ${CYAN}►${RESET} ${BOLD}Step 5${RESET} — Cover tracks before exiting:"
-echo -e "          ${YELLOW}cat /dev/null > /var/log/auth.log; cat /dev/null > /var/log/syslog; cat /dev/null > ~/.bash_history; history -c${RESET}"
+echo -e "          ${YELLOW}cat /dev/null > /var/log/auth.log; cat /dev/null > /var/log/syslog; cat /dev/null > ~/.zsh_history; exit${RESET}"
 echo -e "          Then type: ${BOLD}${GREEN}exit${RESET}"
 echo ""
 
