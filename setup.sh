@@ -32,7 +32,7 @@ SCRIPTS=(
     "eternal.sh"
     "vsftpd.sh"
     "synflood_spoof.sh"
-    "persist.sh"
+    "persistence.sh"
     "post_exploit.sh"
     "cover_tracks.sh"
     "blackbox.sh"
