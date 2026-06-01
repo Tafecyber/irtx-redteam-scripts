@@ -35,6 +35,7 @@ SCRIPTS=(
     "persist.sh"
     "post_exploit.sh"
     "cover_tracks.sh"
+    "blackbox.sh"
 )
 
 echo -e "${CYAN}[*] Downloading Red Team scripts from GitHub...${RESET}"
