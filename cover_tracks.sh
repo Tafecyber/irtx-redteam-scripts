@@ -34,7 +34,7 @@ echo "     ██║   ██╔══██╗██╔══██║██║
 echo "     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████║"
 echo -e "     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝${RESET}"
 echo -e "${CYAN}        IRTx Red Team — Cover Tracks Script v2${RESET}"
-echo -e "${YELLOW}        DataTrust Security Consultants${RESET}"
+echo -e "${YELLOW}                   DataBreach${RESET}"
 echo ""
 
 # --- OPSEC reminder ---
