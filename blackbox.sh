@@ -182,9 +182,12 @@ if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
   echo -e "${MAGENTA}[>] Connecting to $TARGET as $USERNAME...${RESET}"
   echo -e "${YELLOW}    Cheat sheet is above — do your steps, then type exit.${RESET}"
   echo ""
+  
   # Pre-accept host key
-  ssh-keyscan -p "$SSH_PORT" "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
-  sleep 2
+  ssh-keyscan -p "$SSH_PORT" -H "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
+  ssh-keygen -R "[$TARGET]:$SSH_PORT" 2>/dev/null
+  ssh-keyscan -p "$SSH_PORT" -H "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
+  sleep 1
   # Connect with password
   sshpass -p "$PASSWORD" ssh \
     -o StrictHostKeyChecking=no \
