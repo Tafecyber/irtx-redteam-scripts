@@ -33,6 +33,7 @@ SCRIPTS=(
     "vsftpd.sh"
     "synflood_spoof.sh"
     "persist.sh"
+    "post_exploit.sh"
     "cover_tracks.sh"
 )
 
