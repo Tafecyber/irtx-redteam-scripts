@@ -144,12 +144,19 @@ echo ""
 echo -e "${YELLOW}[?] Connect now? ${BOLD}(y/n)${RESET}${YELLOW}:${RESET}"
 read -r SSH_CONFIRM
 
+if ! command -v sshpass &> /dev/null; then
+  echo -e "${YELLOW}[+] Installing sshpass...${RESET}"
+  DEBIAN_FRONTEND=noninteractive apt-get install -y sshpass > /dev/null 2>&1
+  echo -e "${GREEN}[✓] sshpass ready.${RESET}"
+fi
+
 if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
   echo ""
   echo -e "${MAGENTA}[>] Connecting to $TARGET as $USERNAME...${RESET}"
   echo -e "${YELLOW}    Do your manual steps inside, then type exit to return.${RESET}"
   echo ""
-  ssh "$USERNAME"@"$TARGET" -p "$SSH_PORT"
+  sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no \
+    "$USERNAME"@"$TARGET" -p "$SSH_PORT"
 fi
 
 # =============================================================
