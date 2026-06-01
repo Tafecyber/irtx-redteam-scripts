@@ -29,6 +29,12 @@ echo -e "${CYAN}        IRTx Red Team — Persistence Script${RESET}"
 echo -e "${YELLOW}                   DataBreach${RESET}"
 echo ""
 
+# Add this reminder at the top after banner
+echo -e "${RED}[!] Always run as root: sudo ./persistence.sh${RESET}"
+echo -e "${YELLOW}    Key will be saved to /root/.ssh/irtx_backdoor${RESET}"
+echo -e "${YELLOW}    Always reconnect with: sudo ssh -i /root/.ssh/irtx_backdoor...${RESET}"
+echo ""
+
 # --- Space-before-commands warning ---
 echo -e "${BOLD}${YELLOW}  ╔══════════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}${YELLOW}  ║  OPSEC REMINDER — From this point forward:      ║${RESET}"
