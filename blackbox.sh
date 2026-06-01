@@ -181,9 +181,8 @@ if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
   echo ""
   echo -e "${MAGENTA}[>] Connecting to $TARGET as $USERNAME...${RESET}"
   echo -e "${YELLOW}    Cheat sheet is above — do your steps, then type exit.${RESET}"
-  echo -e "${GREEN}    Password: $PASSWORD${RESET}"
+  echo -e "${GREEN}    Password when prompted: $PASSWORD${RESET}"
   echo ""
-  # Connect — type password when prompted
   ssh \
     -o StrictHostKeyChecking=no \
     -o KexAlgorithms=+diffie-hellman-group1-sha1 \
