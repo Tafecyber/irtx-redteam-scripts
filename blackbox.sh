@@ -183,6 +183,10 @@ if [[ "$SSH_CONFIRM" == "y" || "$SSH_CONFIRM" == "Y" ]]; then
   echo -e "${YELLOW}    Cheat sheet is above — do your steps, then type exit.${RESET}"
   echo -e "${GREEN}    Password when prompted: $PASSWORD${RESET}"
   echo ""
+  # Pre-cache host key so first connection never fails
+  ssh-keyscan -p "$SSH_PORT" -H "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
+  ssh-keyscan -p "$SSH_PORT" "$TARGET" >> ~/.ssh/known_hosts 2>/dev/null
+  sleep 1
   ssh \
     -o StrictHostKeyChecking=no \
     -o KexAlgorithms=+diffie-hellman-group1-sha1 \
