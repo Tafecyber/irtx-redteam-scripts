@@ -39,8 +39,8 @@ echo ""
 
 # --- OPSEC reminder ---
 echo -e "${BOLD}${YELLOW}  ╔══════════════════════════════════════════════════════╗${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  Run this ON THE TARGET as root — not on Kali       ║${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  SPACE before all manual commands                   ║${RESET}"
+echo -e "${BOLD}${YELLOW}  ║  Run this ON THE TARGET as root — not on Kali        ║${RESET}"
+echo -e "${BOLD}${YELLOW}  ║  SPACE before all manual commands                    ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ╚══════════════════════════════════════════════════════╝${RESET}"
 echo ""
 
