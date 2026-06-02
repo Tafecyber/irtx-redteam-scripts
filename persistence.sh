@@ -42,7 +42,7 @@ echo ""
 
 # --- OPSEC reminder ---
 echo -e "${BOLD}${YELLOW}  ╔══════════════════════════════════════════════════╗${RESET}"
-echo -e "${BOLD}${YELLOW}  ║  OPSEC REMINDER — From this point forward:      ║${RESET}"
+echo -e "${BOLD}${YELLOW}  ║  OPSEC REMINDER — From this point forward:       ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ║  Use a SPACE before every command you type       ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ║  manually so it is excluded from bash history.   ║${RESET}"
 echo -e "${BOLD}${YELLOW}  ║  Example:  [SPACE]ssh root@10.30.0.235           ║${RESET}"
