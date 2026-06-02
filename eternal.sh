@@ -47,7 +47,7 @@ echo -e "${YELLOW}[?] Enter Windows Server IP ${BOLD}(RHOST)${RESET}${YELLOW}:${
 read -r TARGET
 
 echo ""
-echo -e "${YELLOW}[?] Enter your Kali IP ${BOLD}(LHOST)${RESET}${YELLOW}:${RESET}"
+echo -e "${YELLOW}[?] Enter your Kali IP or if you're Network Pivoting, use the Jump Host IP ${BOLD}(LHOST)${RESET}${YELLOW}:${RESET}"
 read -r LHOST
 
 echo ""
