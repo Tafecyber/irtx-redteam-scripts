@@ -41,9 +41,9 @@ echo -e "${YELLOW}[?] Enter target IP ${BOLD}(RHOST)${RESET}${YELLOW}:${RESET}"
 read -r TARGET
 
 echo ""
-echo -e "${YELLOW}[?] Enter target port ${BOLD}(default: 3000)${RESET}${YELLOW}:${RESET}"
+echo -e "${YELLOW}[?] Enter target port ${BOLD}(default: 80)${RESET}${YELLOW}:${RESET}"
 read -r PORT
-PORT=${PORT:-3000}
+PORT=${PORT:-80}
 
 echo ""
 echo -e "${YELLOW}[?] How long to run the flood in seconds ${BOLD}(default: 30 seconds)${RESET}${YELLOW}:${RESET}"
